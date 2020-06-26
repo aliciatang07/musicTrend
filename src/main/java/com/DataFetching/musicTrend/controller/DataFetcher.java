@@ -6,7 +6,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
@@ -30,8 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DataFetcher {
-    //TODO: add refresh token mechanism to each method once it detect 401 error and retry the same method
-
+    //DONE: add refresh token mechanism to each method once it detect 401 error and retry the same method
 
     public DataFetcher() {
     }
@@ -43,7 +41,7 @@ public class DataFetcher {
     }
 
 
-    public JsonObject getNewRelase(String country, int limit, int offset) throws Exception {
+    public JsonObject getNewRelase(String country, int limit, int offset,int trials) throws Exception {
 
         HttpGet request = new HttpGet("https://api.spotify.com/v1/browse/new-releases?country=" + country + "&limit=" + limit + "&offset=" + offset);
         String bearer_token = new ConfigReader().getPropValues("access_token");
@@ -57,8 +55,13 @@ public class DataFetcher {
 
             HttpEntity entity = response.getEntity();
             int statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode == 400) {
+            if (statusCode == 401) {
 //                refreshToken
+                if(trials<5){
+                    getToken();
+                    return getNewRelase(country, limit,  offset, trials+1);
+                }
+                System.out.println("retry exceeds 5 times, api might got broken or meet server done");
             }
             if (statusCode != 200) {
                 throw new HTTPException(statusCode);
@@ -71,11 +74,11 @@ public class DataFetcher {
                 // return it as a String
                 String result = EntityUtils.toString(entity);
                 System.out.println("here" + result);
-
+                Gson g = new Gson();
+                res = g.fromJson(result, JsonObject.class);
             }
-            String jsonstring = EntityUtils.toString(response.getEntity());
-            Gson g = new Gson();
-            res = g.fromJson(jsonstring, JsonObject.class);
+
+
 
         } catch (Exception e) {
             System.out.println("ERROR" + e);
@@ -83,7 +86,7 @@ public class DataFetcher {
         return res;
     }
 
-    public JsonObject getTracks(String id) throws IOException {
+    public JsonObject getTracks(String id,int trials) throws IOException {
         HttpGet request = new HttpGet("https://api.spotify.com/v1/albums/" + id + "/tracks");
         String bearer_token = new ConfigReader().getPropValues("access_token");
         request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + bearer_token);
@@ -95,17 +98,30 @@ public class DataFetcher {
             System.out.println(response.getStatusLine().toString());
 
             HttpEntity entity = response.getEntity();
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == 401) {
+//                refreshToken
+                if(trials<5){
+                    getToken();
+                    return getTracks(id, trials+1);
+                }
+                System.out.println("retry exceeds 5 times, api might got broken or meet server done");
+            }
+            if (statusCode != 200) {
+                throw new HTTPException(statusCode);
+            }
             Header headers = entity.getContentType();
             System.out.println(headers);
 
-            String jsonstring = EntityUtils.toString(response.getEntity());
-            Gson g = new Gson();
-            res = g.fromJson(jsonstring, JsonObject.class);
+
+
 
             if (entity != null) {
                 // return it as a String
                 String result = EntityUtils.toString(entity);
                 System.out.println(result);
+                Gson g = new Gson();
+                res = g.fromJson(result, JsonObject.class);
 
             }
 
@@ -120,7 +136,7 @@ public class DataFetcher {
 //    GET https://api.spotify.com/v1/audio-analysis/{id}
 //    The base-62 identifier that you can find at the end of the Spotify URI (see above) for an artist, track, album, playlist, etc. Unlike a Spotify URI, a Spotify ID does not clearly identify the type of resource; that information is provided elsewhere in the call.
 //
-    public JsonObject getAudioAnalysis(String id) throws IOException {
+    public JsonObject getAudioAnalysis(String id,int trials) throws IOException {
         HttpGet request = new HttpGet("https://api.spotify.com/v1/audio-analysis/" + id);
         String bearer_token = new ConfigReader().getPropValues("access_token");
         request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + bearer_token);
@@ -133,16 +149,30 @@ public class DataFetcher {
 
             HttpEntity entity = response.getEntity();
             Header headers = entity.getContentType();
+
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == 401) {
+//                refreshToken
+                if(trials<5){
+                    getToken();
+                    return getAudioAnalysis(id, trials+1);
+                }
+                System.out.println("retry exceeds 5 times, api might got broken or meet server done");
+            }
+            if (statusCode != 200) {
+                throw new HTTPException(statusCode);
+            }
+
             System.out.println(headers);
 
             if (entity != null) {
                 // return it as a String
                 String result = EntityUtils.toString(entity);
                 System.out.println(result);
+                Gson g = new Gson();
+                res = g.fromJson(result, JsonObject.class);
+
             }
-            String jsonstring = EntityUtils.toString(response.getEntity());
-            Gson g = new Gson();
-            res = g.fromJson(jsonstring, JsonObject.class);
 
 
         } catch (Exception e) {
@@ -152,13 +182,13 @@ public class DataFetcher {
     }
 
     //ids are comma separated
-    public JsonObject getAudioFeatures(String ids) throws IOException, URISyntaxException {
+    public String getAudioFeatures(String ids,int trials) throws IOException, URISyntaxException {
         URIBuilder builder = new URIBuilder("https://api.spotify.com/v1/audio-features");
         builder.setParameter("ids", ids);
         HttpGet request = new HttpGet(builder.build());
         String bearer_token = new ConfigReader().getPropValues("access_token");
         request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + bearer_token);
-        JsonObject res = new JsonObject();
+        String res = "";
 
         try (CloseableHttpResponse response = httpClient.execute(request)) {
 
@@ -167,17 +197,30 @@ public class DataFetcher {
 
             HttpEntity entity = response.getEntity();
             Header headers = entity.getContentType();
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == 401) {
+//                refreshToken
+                if(trials<5){
+                    getToken();
+                    return getAudioFeatures(ids, trials+1);
+                }
+                System.out.println("retry exceeds 5 times, api might got broken or meet server done");
+            }
+            if (statusCode != 200) {
+                throw new HTTPException(statusCode);
+            }
+
             System.out.println(headers);
 
             if (entity != null) {
                 // return it as a String
                 String result = EntityUtils.toString(entity);
                 System.out.println(result);
+                res = result;
+//                Gson g = new Gson();
+//                res = g.fromJson(result, JsonObject.class);
 
             }
-            String jsonstring = EntityUtils.toString(response.getEntity());
-            Gson g = new Gson();
-            res = g.fromJson(jsonstring, JsonObject.class);
 
 
         } catch (Exception e) {
@@ -214,64 +257,5 @@ public class DataFetcher {
         }
 
     }
-
-
-//
-//    private static HttpRequest.BodyPublisher buildFormDataFromMap(Map<Object, Object> data) {
-//        StringBuilder builder = new StringBuilder();
-//        for (Map.Entry<Object, Object> entry : data.entrySet()) {
-//            if (builder.length() > 0) {
-//                builder.append("&");
-//            }
-//            builder.append(URLEncoder.encode(entry.getKey().toString(), StandardCharsets.UTF_8));
-//            builder.append("=");
-//            builder.append(URLEncoder.encode(entry.getValue().toString(), StandardCharsets.UTF_8));
-//        }
-//        System.out.println(builder.toString());
-//        return HttpRequest.BodyPublishers.ofString(builder.toString());
-//    }
-
-//    public void getToken() throws IOException, InterruptedException {
-//        String encodedClient = new ConfigReader().getPropValues("encode_client");
-//        Map<Object, Object> data = new HashMap<>();
-//        data.put("grant_type", "client_credentials");
-//
-//
-//        HttpRequest request = HttpRequest.newBuilder()
-//                .uri(URI.create("https://accounts.spotify.com/api/token"))
-//                .POST(buildFormDataFromMap(data))
-//                .setHeader(HttpHeaders.AUTHORIZATION,"Basic "+encodedClient)
-//                .build();
-//
-//        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-//
-//
-//        // print status code
-//        System.out.println(response.statusCode());
-//
-//        // print response body
-//        System.out.println(response.body());
-//    }
-
-
-    //get new release
-//    public void getNewRelase(String country, int limit, int offset) throws IOException, InterruptedException {
-//
-//        String bearer_token =  new ConfigReader().getPropValues("access_token");
-//        HttpRequest request = HttpRequest.newBuilder()
-//                .GET()
-//                .uri(URI.create("https://api.spotify.com/v1/browse/new-releases?country="+country+"&limit="+limit+"&offset="+offset))
-//                .setHeader(HttpHeaders.AUTHORIZATION,"Bearer "+bearer_token)
-//                .build();
-//
-//        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-//
-//        // print status code
-//        System.out.println(response.statusCode());
-//
-//        // print response body
-//        System.out.println(response.body());
-//    }
-
 
 }

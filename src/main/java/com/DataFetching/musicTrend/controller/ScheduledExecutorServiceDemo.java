@@ -1,13 +1,9 @@
 package com.DataFetching.musicTrend.controller;
 
-//public class timer_multithread {
-//
-//}
-//package com.baeldung.concurrent.Scheduledexecutorservice;
 
 import java.util.concurrent.*;
 import java.util.function.Function;
-
+//TODO:AFTER FIRST FULL VERSION FINISH, CONSIDER USE MULTITHREAD SCHEUDLER
 public class ScheduledExecutorServiceDemo {
 
     private void execute() throws InterruptedException, ExecutionException, TimeoutException {

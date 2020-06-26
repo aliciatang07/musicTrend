@@ -1,10 +1,7 @@
 package com.DataFetching.musicTrend.controller;
 
-import com.google.gson.JsonObject;
 import org.springframework.kafka.core.KafkaTemplate;
 
-import java.util.Date;
-import java.util.List;
 import java.util.TimerTask;
 
 public class StreamAudioAnalysis extends TimerTask {
@@ -15,11 +12,12 @@ public class StreamAudioAnalysis extends TimerTask {
     DataSynthese ds = new DataSynthese();
     private KafkaTemplate<String, String> template;
 
-    public StreamAudioAnalysis(String country, int limit, int offset, String topic) {
+    public StreamAudioAnalysis(String country, int limit, int offset, String topic, KafkaTemplate<String, String> template) {
         this.country = country;
         this.limit = limit;
         this.offset = offset;
         this.topic = topic;
+        this.template = template;
     }
 
     @Override

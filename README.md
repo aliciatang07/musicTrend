@@ -1,5 +1,5 @@
 ## left task 
--[ ] refresh token automatically
+-[x] refresh token automatically
 -[x] setup the return body from http get 
 -[x] finish the whole work flow: get release, get track, get audio analysis and feature,
 -[ ] feed into kafka periodically in streaming format(query api every hour)
