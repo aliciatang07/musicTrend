@@ -31,7 +31,8 @@ token format
 sample response from get new release 
 sample query:
 https://api.spotify.com/v1/browse/new-releases?country=CA&offset=0&limit=10
-
+sample data 
+```
 {
   "albums": {
     "href": "https://api.spotify.com/v1/browse/new-releases?country=CA&offset=0&limit=10",
@@ -91,3 +92,4 @@ https://api.spotify.com/v1/browse/new-releases?country=CA&offset=0&limit=10
       },
      }
      }
+```
