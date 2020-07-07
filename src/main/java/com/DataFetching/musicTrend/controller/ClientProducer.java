@@ -48,6 +48,20 @@ public class ClientProducer {
         }
     }
 
+    @GetMapping("/spark/clustering")
+    public void produceAudioAnalysis(@RequestParam String topic1, @RequestParam String topic2) {
+        try {
+            ClusteringTest ct = new ClusteringTest(topic1,topic2,template);
+            Timer timer = new Timer();
+            timer.schedule(ct,0,1000);
+            Thread.sleep(10000);
+            timer.cancel();
+        } catch (Exception e) {
+            System.out.println("Failed to fetch audio features due to" + e);
+        }
+    }
+
+
 
 //    https://www.baeldung.com/java-timer-and-timertask
 //    https://www.baeldung.com/java-executor-service-tutorial

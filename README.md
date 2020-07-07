@@ -1,11 +1,19 @@
+## api request format 
+
+```
+http://localhost:8081/spark/clustering?topic1={{traintopics}}&topic2={{testtopics}}
+```
+
 ## left task 
 -[x] refresh token automatically
 -[x] setup the return body from http get 
 -[x] finish the whole work flow: get release, get track, get audio analysis and feature,
 -[x] feed into kafka periodically in streaming format(query api every hour)
 -[ ] experiment partition number and topic number 
-
-
+-[ ] provide server side API or library to generate data periodically to kafka producer 
+        1)duration,frequency
+        2)topic, partition
+        3)contentsource(api endpoint(support a list of contious api(连环request)), result key, user configuration(access token ect))
 ## further improvement after finishing spark side 
 - [ ] generalize the streaming producer side for any other data 
 from other api  
